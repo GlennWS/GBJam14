@@ -1,0 +1,11 @@
+GBJam14/.vs
+GBJam14/Library
+GBJam14/Logs
+GBJam14/obj
+GBJam14/Temp
+GBJam14/UserSettings
+GBJam14/.vscode
+GBJam14/Assembly-CSharp.csproj
+GBJam14/Build
+GBJam14/.vsconfig
+*.sln

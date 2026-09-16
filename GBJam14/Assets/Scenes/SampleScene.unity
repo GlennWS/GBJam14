@@ -775,7 +775,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   player: {fileID: 844141108}
   customer: {fileID: 829964087}
-  entryPoint: {fileID: 0}
+  doorPoint: {fileID: 415352418}
   counterPoint: {fileID: 2095680957}
   messageText: {fileID: 0}
   itemPool:
@@ -783,9 +783,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 29bfb8f80cd583e41b4bb956d4d7c7ee, type: 2}
   - {fileID: 11400000, guid: 9d1f9672efb90124e9cd5065b46e8b54, type: 2}
   customersPerDay: 3
+  secondsBetweenCustomers: 4
   startingMoney: 100
   rent: 60
   rentEveryDays: 3
+  serveRadius: 3.7
 --- !u!4 &267121638
 Transform:
   m_ObjectHideFlags: 0
@@ -1127,6 +1129,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Customer
   speedPixelsPerSecond: 60
   pixelsPerUnit: 8
+  browseTimeRange: {x: 1.5, y: 3}
+  browseStopsRange: {x: 1, y: 2}
+  patienceSeconds: 20
   moodFaces:
   - {fileID: 0}
   - {fileID: 0}

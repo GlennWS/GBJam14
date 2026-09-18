@@ -8,5 +8,7 @@ GBJam14/.vscode
 GBJam14/Assembly-CSharp.csproj
 GBJam14/Build
 GBJam14/.vsconfig
+GBJam14/Assets/TextMesh Pro
+GBJam14/Assets/TextMesh Pro.meta
 *.sln
 *.slnx

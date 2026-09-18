@@ -8,10 +8,13 @@ public class GameManager : MonoBehaviour
 
     public static GameManager Instance { get; private set; }
 
+    [SerializeField] private CleaningMinigame cleaning;
+
     [SerializeField] private PlayerController player;
     [SerializeField] private Customer customer;
     [SerializeField] private Transform doorPoint;
     [SerializeField] private Transform counterPoint;
+    [SerializeField] private GameObject messageStrip;
     [SerializeField] private TextMeshProUGUI messageText;
 
     [SerializeField] private List<ItemData> itemPool = new List<ItemData>();
@@ -32,8 +35,10 @@ public class GameManager : MonoBehaviour
     private int customersSpawned, customersDone;
     private float spawnTimer;
     private int offer;
-    private bool waitingForA;
+    private System.Action afterText;
+    private bool paging;
     private bool showingPrompt;
+    private float messageTimer;
 
     private void Awake()
     {
@@ -55,20 +60,29 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (waitingForA && GBInput.A.WasPressedThisFrame())
+        if (paging && GBInput.A.WasPressedThisFrame())
         {
-            waitingForA = false;
-            Advance();
+            if (messageText.pageToDisplay < messageText.textInfo.pageCount)
+            {
+                messageText.pageToDisplay++;
+            }
+            else
+            {
+                paging = false;
+                var cb = afterText;
+                afterText = null;
+                cb?.Invoke();
+            }
             return;
         }
 
         switch (Current)
         {
-            case State.Trading: 
-                UpdateTrading(); 
+            case State.Trading:
+                UpdateTrading();
                 break;
-            case State.Haggle: 
-                HandleHaggleInput(); 
+            case State.Haggle:
+                HandleHaggleInput();
                 break;
         }
 
@@ -95,13 +109,15 @@ public class GameManager : MonoBehaviour
         bool canServe = customer.IsWaiting &&
                         Vector2.Distance(player.transform.position, counterPoint.position) <= serveRadius;
 
-        if (canServe && !showingPrompt) 
-        { 
-            Say("~ [A] Serve Customer ~"); showingPrompt = true; 
+        if (canServe && !showingPrompt)
+        {
+            Say("~ [A] Serve Customer ~");
+            showingPrompt = true;
         }
-        if (!canServe && showingPrompt) 
-        { 
-            Hide(); showingPrompt = false; 
+        if (!canServe && showingPrompt)
+        {
+            Hide();
+            showingPrompt = false;
         }
         if (canServe && GBInput.A.WasPressedThisFrame())
         {
@@ -130,8 +146,7 @@ public class GameManager : MonoBehaviour
         switch (s)
         {
             case State.Closed:
-                Say($"Day: {Day}. £{Money}\n~ [A] Open the shop ~");
-                waitingForA = true;
+                Tell($"Day: {Day}. £{Money}\n~ Open the shop ~", Advance);
                 break;
 
             case State.Trading:
@@ -140,8 +155,7 @@ public class GameManager : MonoBehaviour
 
             case State.Appraise:
                 var it = customer.Item;
-                Say($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.\n~ [A] Appraise ~");
-                waitingForA = true;
+                Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", Advance);
                 break;
 
             case State.Haggle:
@@ -151,26 +165,24 @@ public class GameManager : MonoBehaviour
                 break;
 
             case State.Restore:
-                Say($"Item Condition: {Mathf.RoundToInt(customer.Item.condition * 100)}%\n~ [A] Clean it up ~");
-                waitingForA = true;
+                Hide();
+                cleaning.Begin(customer.Item, () => Enter(State.Sell));
                 break;
 
             case State.Sell:
                 int price = customer.Item.SellValue;
                 Money += price;
-                Say($"Sold {customer.Item.data.displayName} for £{price}.\n~ [A] Done ~");
-                waitingForA = true;
+                Tell($"Sold {customer.Item.data.displayName} for £{price}.", Advance);
                 break;
 
             case State.Summary:
                 string rentLine = "";
-                if (Day % rentEveryDays == 0) 
-                { 
-                    Money -= rent; 
-                    rentLine = $"\nRent paid: £{rent}. Sad paying rent in game"; 
+                if (Day % rentEveryDays == 0)
+                {
+                    Money -= rent;
+                    rentLine = $"\nRent paid: £{rent}. Sad paying rent in game";
                 }
-                Say($"Shop closed.\nMoney: £{Money}{rentLine}\n~ [A] Next day ~");
-                waitingForA = true;
+                Tell($"Shop closed.\nMoney: £{Money}{rentLine}\n~ Next day ~", Advance);
                 break;
         }
     }
@@ -180,22 +192,20 @@ public class GameManager : MonoBehaviour
         switch (Current)
         {
             case State.Closed:
-                customersSpawned = 0; 
-                customersDone = 0; 
+                customersSpawned = 0;
+                customersDone = 0;
                 spawnTimer = 1f;
                 Enter(State.Trading);
                 break;
-            case State.Appraise: 
-                Enter(State.Haggle); 
+            case State.Appraise:
+                Enter(State.Haggle);
                 break;
-            case State.Restore: 
-                Enter(State.Sell); 
+            case State.Sell:
+                FinishServing();
                 break;
-            case State.Sell: 
-                FinishServing(); 
-                break;
-            case State.Summary: Day++; 
-                Enter(State.Closed); 
+            case State.Summary:
+                Day++;
+                Enter(State.Closed);
                 break;
         }
     }
@@ -213,13 +223,13 @@ public class GameManager : MonoBehaviour
         if (GBInput.Move.WasPressedThisFrame())
         {
             float y = GBInput.Direction.y;
-            if (y > 0f) 
-            { 
-                offer += 5; 
-                customer.Nudge(true); 
-                ShowHaggle(); 
+            if (y > 0f)
+            {
+                offer += 5;
+                customer.Nudge(true);
+                ShowHaggle();
             }
-            else
+            else if (y < 0f)
             {
                 offer = Mathf.Max(1, offer - 5);
                 if (!customer.Nudge(false))
@@ -247,10 +257,10 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                if (!customer.Nudge(false)) 
-                { 
-                    Say("\"Too low!\" They leave.", 2f); 
-                    FinishServing(); 
+                if (!customer.Nudge(false))
+                {
+                    Say("\"Too low!\" They leave.", 2f);
+                    FinishServing();
                 }
                 else ShowHaggle();
             }
@@ -273,29 +283,32 @@ public class GameManager : MonoBehaviour
         };
         Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.SellValue}\nOffer £{offer}  {mood}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
     }
-
-    private float messageTimer;
-
     private void Say(string msg, float seconds = 0f)
     {
         messageTimer = seconds;
         if (messageText != null)
         {
             messageText.text = msg;
-            messageText.enabled = true;
+            messageStrip.SetActive(true);
         }
-        else
-        {
-            Debug.Log(msg);
-        }
+        else Debug.Log(msg);
     }
 
     private void Hide()
     {
         messageTimer = 0f;
+        if (messageStrip != null) messageStrip.SetActive(false);
+    }
+
+    private void Tell(string msg, System.Action onDone)
+    {
+        Say(msg);
         if (messageText != null)
         {
-            messageText.enabled = false;
+            messageText.pageToDisplay = 1;
+            messageText.ForceMeshUpdate();
         }
+        afterText = onDone;
+        paging = true;
     }
 }

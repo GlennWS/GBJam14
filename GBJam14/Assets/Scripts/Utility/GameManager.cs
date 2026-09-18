@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    public enum State { Closed, Trading, Appraise, Haggle, Restore, Sell, Summary }
+    public enum State { Closed, Trading, Appraise, Haggle, Restore, Stock, BuyerHaggle, Summary, GameOver }
 
     public static GameManager Instance { get; private set; }
 
@@ -20,17 +21,18 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<ItemData> itemPool = new List<ItemData>();
     [SerializeField] private int customersPerDay = 3;
     [SerializeField] private float secondsBetweenCustomers = 4f;
+    [SerializeField, Range(0f, 1f)] private float buyerChance = 0.5f;
     [SerializeField] private int startingMoney = 100;
     [SerializeField] private int rent = 60;
     [SerializeField] private int rentEveryDays = 3;
     [SerializeField] private float serveRadius = 2f;
 
-    private List<Transform> browsePoints = new List<Transform>();
+    private List<BrowsePoint> browsePoints = new List<BrowsePoint>();
+    private List<Shelf> shelves = new List<Shelf>();
 
     public State Current { get; private set; }
     public int Money { get; private set; }
     public int Day { get; private set; } = 1;
-    public List<ItemInstance> Stock { get; } = new List<ItemInstance>();
 
     private int customersSpawned, customersDone;
     private float spawnTimer;
@@ -51,10 +53,8 @@ public class GameManager : MonoBehaviour
         customer.gameObject.SetActive(false);
         customer.OnLeft += _ => { customersDone++; CheckDayEnd(); };
         customer.OnGaveUp += _ => Say("The customer got tired of waiting of you being SLOOOOW!!", 2f);
-        foreach (var bp in FindObjectsByType<BrowsePoint>(FindObjectsSortMode.None))
-        {
-            browsePoints.Add(bp.transform);
-        }
+        browsePoints.AddRange(FindObjectsByType<BrowsePoint>(FindObjectsSortMode.None));
+        shelves.AddRange(FindObjectsByType<Shelf>(FindObjectsSortMode.None));
         Enter(State.Closed);
     }
 
@@ -82,7 +82,10 @@ public class GameManager : MonoBehaviour
                 UpdateTrading();
                 break;
             case State.Haggle:
-                HandleHaggleInput();
+                HandleSellerHaggle();
+                break;
+            case State.BuyerHaggle:
+                HandleBuyerHaggle();
                 break;
         }
 
@@ -99,8 +102,7 @@ public class GameManager : MonoBehaviour
             spawnTimer -= Time.deltaTime;
             if (spawnTimer <= 0f)
             {
-                ItemData data = itemPool[Random.Range(0, itemPool.Count)];
-                customer.Spawn(data, doorPoint.position, counterPoint.position, browsePoints);
+                SpawnCustomer();
                 customersSpawned++;
                 spawnTimer = secondsBetweenCustomers;
             }
@@ -122,7 +124,22 @@ public class GameManager : MonoBehaviour
         if (canServe && GBInput.A.WasPressedThisFrame())
         {
             showingPrompt = false;
-            Enter(State.Appraise);
+            Enter(customer.CurrentKind == Customer.Kind.Buyer ? State.BuyerHaggle : State.Appraise);
+        }
+    }
+
+    private void SpawnCustomer()
+    {
+        var stocked = shelves.FindAll(s => s.HasStock);
+        if (stocked.Count > 0 && Random.value < buyerChance)
+        {
+            Shelf shelf = stocked[Random.Range(0, stocked.Count)];
+            customer.SpawnBuyer(shelf.RandomItem(), shelf, doorPoint.position, counterPoint.position, browsePoints);
+        }
+        else
+        {
+            ItemData data = itemPool[Random.Range(0, itemPool.Count)];
+            customer.SpawnSeller(data, doorPoint.position, counterPoint.position, browsePoints);
         }
     }
 
@@ -161,28 +178,59 @@ public class GameManager : MonoBehaviour
             case State.Haggle:
                 customer.Item.appraised = true;
                 offer = customer.Item.AskingPrice;
-                ShowHaggle();
+                ShowSellerHaggle();
                 break;
 
             case State.Restore:
                 Hide();
-                cleaning.Begin(customer.Item, () => Enter(State.Sell));
+                cleaning.Begin(customer.Item, () => Enter(State.Stock));
                 break;
 
-            case State.Sell:
-                int price = customer.Item.SellValue;
-                Money += price;
-                Tell($"Sold {customer.Item.data.displayName} for £{price}.", Advance);
+            case State.Stock:
+                {
+                    var item = customer.Item;
+                    Shelf free = shelves.Find(sh => sh.HasFreeSlot);
+                    if (free != null)
+                    {
+                        free.Place(item);
+                        Tell($"{item.data.displayName} goes on the shelf.\nWorth ~£{item.SellValue} now.", Advance);
+                    }
+                    else
+                    {
+                        int scrap = Mathf.Max(1, item.SellValue / 2);
+                        Money += scrap;
+                        Tell($"No shelf space!\nSold {item.data.displayName} for scrap: £{scrap}.", Advance);
+                    }
+                    break;
+                }
+
+            case State.BuyerHaggle:
+                offer = customer.Item.SellValue;
+                ShowBuyerHaggle();
                 break;
 
             case State.Summary:
-                string rentLine = "";
-                if (Day % rentEveryDays == 0)
                 {
-                    Money -= rent;
-                    rentLine = $"\nRent paid: £{rent}. Sad paying rent in game";
+                    string rentLine = "";
+                    if (Day % rentEveryDays == 0)
+                    {
+                        Money -= rent;
+                        rentLine = $"\nRent paid: £{rent}. Sad paying rent in game";
+                    }
+                    if (Money < 0)
+                    {
+                        Tell($"Shop closed.\nMoney: £{Money}{rentLine}", () => Enter(State.GameOver));
+                    }
+                    else
+                    {
+                        Tell($"Shop closed.\nMoney: £{Money}{rentLine}\n~ Next day ~", Advance);
+                    }
+                    break;
                 }
-                Tell($"Shop closed.\nMoney: £{Money}{rentLine}\n~ Next day ~", Advance);
+
+            case State.GameOver:
+                Tell($"You can't pay the rent.\nThe shop is lost after {Day} days.\n~ Try again ~",
+                     () => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex));
                 break;
         }
     }
@@ -200,7 +248,7 @@ public class GameManager : MonoBehaviour
             case State.Appraise:
                 Enter(State.Haggle);
                 break;
-            case State.Sell:
+            case State.Stock:
                 FinishServing();
                 break;
             case State.Summary:
@@ -216,7 +264,7 @@ public class GameManager : MonoBehaviour
         Enter(State.Trading);
     }
 
-    private void HandleHaggleInput()
+    private void HandleSellerHaggle()
     {
         var item = customer.Item;
 
@@ -227,7 +275,7 @@ public class GameManager : MonoBehaviour
             {
                 offer += 5;
                 customer.Nudge(true);
-                ShowHaggle();
+                ShowSellerHaggle();
             }
             else if (y < 0f)
             {
@@ -238,7 +286,7 @@ public class GameManager : MonoBehaviour
                     FinishServing();
                     return;
                 }
-                ShowHaggle();
+                ShowSellerHaggle();
             }
         }
 
@@ -248,21 +296,20 @@ public class GameManager : MonoBehaviour
             {
                 Money -= offer;
                 item.paidFor = offer;
-                Stock.Add(item);
                 Enter(State.Restore);
             }
             else if (offer > Money)
             {
                 Say("You are too broke for that", 1.5f);
             }
+            else if (!customer.Nudge(false))
+            {
+                Say("\"Too low!\" They leave.", 2f);
+                FinishServing();
+            }
             else
             {
-                if (!customer.Nudge(false))
-                {
-                    Say("\"Too low!\" They leave.", 2f);
-                    FinishServing();
-                }
-                else ShowHaggle();
+                ShowSellerHaggle();
             }
         }
 
@@ -273,16 +320,80 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ShowHaggle()
+    private void ShowSellerHaggle()
     {
-        string mood = customer.CurrentMood switch
+        Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.SellValue}\nOffer £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
+    }
+
+    private void HandleBuyerHaggle()
+    {
+        var item = customer.Item;
+        int fair = item.SellValue;
+
+        if (GBInput.Move.WasPressedThisFrame())
+        {
+            float y = GBInput.Direction.y;
+            if (y > 0f)
+            {
+                offer += 5;
+                if (!customer.Nudge(false))
+                {
+                    Say("\"Daylight robbery!\" They storm out.", 2f);
+                    FinishServing();
+                    return;
+                }
+                ShowBuyerHaggle();
+            }
+            else if (y < 0f)
+            {
+                offer = Mathf.Max(1, offer - 5);
+                customer.Nudge(true);
+                ShowBuyerHaggle();
+            }
+        }
+
+        if (GBInput.A.WasPressedThisFrame())
+        {
+            float ceiling = customer.CurrentMood == Customer.Mood.Annoyed ? 1.1f : 1.3f;
+            if (offer <= fair * ceiling)
+            {
+                Money += offer;
+                customer.ItemShelf.Remove(item);
+                Tell($"Sold {item.data.displayName} for £{offer}!\n(You paid £{item.paidFor}.)", FinishServing);
+            }
+            else if (!customer.Nudge(false))
+            {
+                Say("\"Too much!\" They leave.", 2f);
+                FinishServing();
+            }
+            else
+            {
+                ShowBuyerHaggle();
+            }
+        }
+
+        if (GBInput.B.WasPressedThisFrame())
+        {
+            Say("\"Not for sale.\"", 1.5f);
+            FinishServing();
+        }
+    }
+
+    private void ShowBuyerHaggle()
+    {
+        Say($"They want {customer.Item.data.displayName}.\nAsk £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Sell  [B] Refuse ~");
+    }
+
+    private string MoodFace()
+    {
+        return customer.CurrentMood switch
         {
             Customer.Mood.Happy => ":)",
             Customer.Mood.Annoyed => ">:(",
             _ => ":|"
         };
-        Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.SellValue}\nOffer £{offer}  {mood}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
     }
+
     private void Say(string msg, float seconds = 0f)
     {
         messageTimer = seconds;

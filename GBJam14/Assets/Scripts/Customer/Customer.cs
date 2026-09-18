@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Customer : MonoBehaviour
 {
+    public enum Kind { Seller, Buyer }
     public enum Mood { Happy, Neutral, Annoyed }
     public enum Phase { Entering, Browsing, WalkingToCounter, Waiting, Leaving, Gone }
 
@@ -12,7 +13,9 @@ public class Customer : MonoBehaviour
     [SerializeField] private Vector2Int browseStopsRange = new Vector2Int(1, 2);
     [SerializeField] private float patienceSeconds = 20f;
 
+    public Kind CurrentKind { get; private set; }
     public ItemInstance Item { get; private set; }
+    public Shelf ItemShelf { get; private set; }
     public Mood CurrentMood { get; private set; } = Mood.Neutral;
     public Phase CurrentPhase { get; private set; } = Phase.Gone;
     public int Patience { get; private set; } = 3;
@@ -29,27 +32,71 @@ public class Customer : MonoBehaviour
     private float waitTimer;
     private Vector2 subPixel;
 
-    public void Spawn(ItemData data, Vector2 doorPos, Vector2 counterPos, IList<Transform> browsePoints)
+    public void SpawnSeller(ItemData data, Vector2 doorPos, Vector2 counterPos, IList<BrowsePoint> browsePoints)
     {
+        CurrentKind = Kind.Seller;
         Item = new ItemInstance(data);
+        ItemShelf = null;
+        Begin(doorPos, counterPos, PickStops(browsePoints, null));
+    }
+
+    public void SpawnBuyer(ItemInstance wanted, Shelf shelf, Vector2 doorPos, Vector2 counterPos, IList<BrowsePoint> browsePoints)
+    {
+        CurrentKind = Kind.Buyer;
+        Item = wanted;
+        ItemShelf = shelf;
+
+        BrowsePoint dest = null;
+        foreach (var bp in browsePoints)
+        {
+            if (bp.Shelf == shelf)
+            {
+                dest = bp;
+                break;
+            }
+        }
+        Begin(doorPos, counterPos, PickStops(browsePoints, dest));
+    }
+
+    private List<Vector2> PickStops(IList<BrowsePoint> browsePoints, BrowsePoint mustEndAt)
+    {
+        var stops = new List<Vector2>();
+        var pool = new List<BrowsePoint>(browsePoints);
+        if (mustEndAt != null)
+        {
+            pool.Remove(mustEndAt);
+        }
+
+        int n = Random.Range(browseStopsRange.x, browseStopsRange.y + 1);
+        if (mustEndAt != null)
+        {
+            n = Mathf.Max(0, n - 1);
+        }
+        for (int i = 0; i < n && pool.Count > 0; i++)
+        {
+            int k = Random.Range(0, pool.Count);
+            stops.Add(pool[k].transform.position);
+            pool.RemoveAt(k);
+        }
+        if (mustEndAt != null)
+        {
+            stops.Add(mustEndAt.transform.position);
+        }
+        return stops;
+    }
+
+    private void Begin(Vector2 doorPos, Vector2 counterPos, List<Vector2> stops)
+    {
         CurrentMood = Mood.Neutral;
         Patience = 3;
         door = Snap(doorPos);
         counter = Snap(counterPos);
         transform.position = door;
         gameObject.SetActive(true);
+
         route.Clear();
-
-        int stops = Random.Range(browseStopsRange.x, browseStopsRange.y + 1);
-        var pool = new List<Transform>(browsePoints);
-        for (int i = 0; i < stops && pool.Count > 0; i++)
-        {
-            int k = Random.Range(0, pool.Count);
-            route.Add(pool[k].position);
-            pool.RemoveAt(k);
-        }
+        route.AddRange(stops);
         routeIndex = 0;
-
         CurrentPhase = Phase.Entering;
         NextLeg();
     }
@@ -74,11 +121,12 @@ public class Customer : MonoBehaviour
         WalkTo(door);
     }
 
-    public bool Nudge(bool towardsTheirPrice)
+    public bool Nudge(bool inTheirFavour)
     {
-        if (towardsTheirPrice) 
-        { 
-            CurrentMood = Mood.Happy; return true; 
+        if (inTheirFavour)
+        {
+            CurrentMood = Mood.Happy;
+            return true;
         }
         Patience--;
         CurrentMood = Patience <= 1 ? Mood.Annoyed : Mood.Neutral;
@@ -105,7 +153,7 @@ public class Customer : MonoBehaviour
                 else if (CurrentPhase == Phase.Browsing)
                 {
                     pauseTimer -= Time.deltaTime;
-                    if (pauseTimer <= 0f) 
+                    if (pauseTimer <= 0f)
                     {
                         NextLeg();
                     }
@@ -153,9 +201,11 @@ public class Customer : MonoBehaviour
                     : Mathf.Abs(delta.y) > 0.001f ? new Vector2(0f, Mathf.Sign(delta.y))
                     : Vector2.zero;
 
-        if (dir == Vector2.zero) 
-        { 
-            transform.position = target; Arrived(); return; 
+        if (dir == Vector2.zero)
+        {
+            transform.position = target;
+            Arrived();
+            return;
         }
 
         subPixel += dir * speedPixelsPerSecond * Time.deltaTime;

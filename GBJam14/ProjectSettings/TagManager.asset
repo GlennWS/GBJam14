@@ -47,6 +47,9 @@ TagManager:
   - name: Objects
     uniqueID: 2459002051
     locked: 0
+  - name: Shelf Objects
+    uniqueID: 4057998771
+    locked: 0
   - name: UI
     uniqueID: 1105213163
     locked: 0

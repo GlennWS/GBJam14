@@ -8,6 +8,7 @@ public class ItemData : ScriptableObject
 
     public Sprite shelfSprite;
     public Sprite closeUpSprite;
+    public Sprite[] conditionFrames;
 
     public int baseValue = 50;
     [Range(0.1f, 1.5f)] public float askingRatio = 0.6f;

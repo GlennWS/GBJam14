@@ -7,8 +7,6 @@ public class CleaningMinigame : MonoBehaviour
 {
     [SerializeField] private GameObject panel;
     [SerializeField] private Image itemImage;
-    [SerializeField] private Image grimeImage;
-    [SerializeField] private Sprite[] grimeFrames;
     [SerializeField] private Sprite crackedOverlay;
     [SerializeField] private Image progressFill;
     [SerializeField] private Image strainFill;
@@ -41,8 +39,6 @@ public class CleaningMinigame : MonoBehaviour
         cracked = false;
         finishing = false;
 
-        itemImage.sprite = item.data.closeUpSprite;
-        grimeImage.enabled = true;
         panel.SetActive(true);
         Refresh();
         caption.text = "Alternate A and B to scrub the item!";
@@ -109,19 +105,12 @@ public class CleaningMinigame : MonoBehaviour
     private void Refresh()
     {
         float remaining = grimeTotal - grimeCleared;
-        if (grimeFrames != null && grimeFrames.Length > 0)
+        var frames = item.data.conditionFrames;
+        if (frames != null && frames.Length > 0)
         {
-            if (remaining <= 0.0001f)
-            {
-                grimeImage.enabled = false;
-            }
-            else
-            {
-                int idx = Mathf.Clamp(Mathf.FloorToInt((remaining / Mathf.Max(grimeTotal, 0.0001f)) * grimeFrames.Length),
-                                      0, grimeFrames.Length - 1);
-                grimeImage.sprite = grimeFrames[grimeFrames.Length - 1 - idx];
-                grimeImage.enabled = true;
-            }
+            float cleanliness = grimeTotal > 0f ? grimeCleared / grimeTotal : 1f;
+            int idx = Mathf.Clamp(Mathf.FloorToInt(cleanliness * frames.Length), 0, frames.Length - 1);
+            itemImage.sprite = frames[idx];
         }
         if (progressFill != null)
         {
@@ -140,10 +129,6 @@ public class CleaningMinigame : MonoBehaviour
         if (cracked)
         {
             item.condition = Mathf.Max(0f, startCondition - crackPenalty);
-            if (crackedOverlay != null) 
-            { 
-                grimeImage.sprite = crackedOverlay; grimeImage.enabled = true; 
-            }
             caption.text = $"Too quick, the item cracks\nCondition: {Percentageify(item.condition)}\n[A] Continue";
         }
         else

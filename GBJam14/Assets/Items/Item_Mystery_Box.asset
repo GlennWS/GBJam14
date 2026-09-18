@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 99ab6b3c4cfbc7b46bf3cb72802acdaf, type: 3}
-  m_Name: Item_Ring
+  m_Name: Item_Mystery_Box
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  displayName: Old Ring
+  displayName: Mystery Box
   description: 
-  shelfSprite: {fileID: 21300000, guid: 40879ca59b96a9d458113fd1a6114e34, type: 3}
-  closeUpSprite: {fileID: 21300000, guid: 9e6f91f64fadc59479d0686e6ad06d4e, type: 3}
+  shelfSprite: {fileID: 21300000, guid: e7d073f338516cd438093e1d8c085314, type: 3}
+  closeUpSprite: {fileID: 21300000, guid: cf76080397efa0e40bb0fbe671f4aa05, type: 3}
   conditionFrames:
-  - {fileID: 21300000, guid: 0d2cdc1b9bf434748a8f04f09ddddd51, type: 3}
-  - {fileID: 21300000, guid: cff0f13931efa3e47978dbe98731682b, type: 3}
-  - {fileID: 21300000, guid: 51048934281af51458d84ce80dbaebd3, type: 3}
-  - {fileID: 21300000, guid: 9e6f91f64fadc59479d0686e6ad06d4e, type: 3}
+  - {fileID: 21300000, guid: 6b5b1731480e6e840a85e223987f9f4a, type: 3}
+  - {fileID: 21300000, guid: f1ceedc59dfef1546a88e821c4c326aa, type: 3}
+  - {fileID: 21300000, guid: 9426017621a224f49a4aff84b2604fff, type: 3}
+  - {fileID: 21300000, guid: cf76080397efa0e40bb0fbe671f4aa05, type: 3}
   baseValue: 50
   askingRatio: 0.6
   tells: 1

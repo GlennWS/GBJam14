@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 99ab6b3c4cfbc7b46bf3cb72802acdaf, type: 3}
-  m_Name: Item_Ring
+  m_Name: Item_Jug
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  displayName: Old Ring
+  displayName: Old Jug
   description: 
-  shelfSprite: {fileID: 21300000, guid: 40879ca59b96a9d458113fd1a6114e34, type: 3}
-  closeUpSprite: {fileID: 21300000, guid: 9e6f91f64fadc59479d0686e6ad06d4e, type: 3}
+  shelfSprite: {fileID: 21300000, guid: a21fc2d5f2dc3fb4bbbc31d2fd030115, type: 3}
+  closeUpSprite: {fileID: 21300000, guid: c1ecf0144d9ac98488dbac266b342f42, type: 3}
   conditionFrames:
-  - {fileID: 21300000, guid: 0d2cdc1b9bf434748a8f04f09ddddd51, type: 3}
-  - {fileID: 21300000, guid: cff0f13931efa3e47978dbe98731682b, type: 3}
-  - {fileID: 21300000, guid: 51048934281af51458d84ce80dbaebd3, type: 3}
-  - {fileID: 21300000, guid: 9e6f91f64fadc59479d0686e6ad06d4e, type: 3}
+  - {fileID: 21300000, guid: 375c052638a13b0419b34ff8e6cbb4af, type: 3}
+  - {fileID: 21300000, guid: 22543888b007c174383a4471c4e38aaf, type: 3}
+  - {fileID: 21300000, guid: b4302e334dd845b40b56e41a4f20c01f, type: 3}
+  - {fileID: 21300000, guid: c1ecf0144d9ac98488dbac266b342f42, type: 3}
   baseValue: 50
   askingRatio: 0.6
   tells: 1

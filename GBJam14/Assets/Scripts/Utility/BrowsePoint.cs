@@ -4,7 +4,10 @@ public class BrowsePoint : MonoBehaviour
 {
     public Shelf Shelf { get; private set; }
 
-    private void Awake() => Shelf = GetComponentInParent<Shelf>();
+    private void Awake()
+    {
+        Shelf = GetComponentInParent<Shelf>();
+    }
 
     private void OnDrawGizmos()
     {

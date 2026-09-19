@@ -15,7 +15,6 @@ MonoBehaviour:
   displayName: Old Jug
   description: 
   shelfSprite: {fileID: 21300000, guid: a21fc2d5f2dc3fb4bbbc31d2fd030115, type: 3}
-  closeUpSprite: {fileID: 21300000, guid: c1ecf0144d9ac98488dbac266b342f42, type: 3}
   conditionFrames:
   - {fileID: 21300000, guid: 375c052638a13b0419b34ff8e6cbb4af, type: 3}
   - {fileID: 21300000, guid: 22543888b007c174383a4471c4e38aaf, type: 3}
@@ -23,8 +22,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: c1ecf0144d9ac98488dbac266b342f42, type: 3}
   baseValue: 50
   askingRatio: 0.6
-  tells: 1
-  isFake: 0
   isKeepsake: 0
+  tells:
+  - kind: 0
+    pixel: {x: 0, y: 0}
   minStartCondition: 0.2
   maxStartCondition: 0.8

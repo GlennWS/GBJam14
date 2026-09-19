@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private CleaningMinigame cleaning;
+    [SerializeField] private AppraisalMinigame appraisal;
 
     [SerializeField] private PlayerController player;
     [SerializeField] private Customer customer;
@@ -172,7 +173,11 @@ public class GameManager : MonoBehaviour
 
             case State.Appraise:
                 var it = customer.Item;
-                Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", Advance);
+                Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", () =>
+                {
+                    Hide();
+                    appraisal.Begin(it, () => Enter(State.Haggle));
+                });
                 break;
 
             case State.Haggle:
@@ -244,9 +249,6 @@ public class GameManager : MonoBehaviour
                 customersDone = 0;
                 spawnTimer = 1f;
                 Enter(State.Trading);
-                break;
-            case State.Appraise:
-                Enter(State.Haggle);
                 break;
             case State.Stock:
                 FinishServing();
@@ -322,7 +324,7 @@ public class GameManager : MonoBehaviour
 
     private void ShowSellerHaggle()
     {
-        Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.SellValue}\nOffer £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
+        Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.AppraisedValue}\nOffer £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
     }
 
     private void HandleBuyerHaggle()

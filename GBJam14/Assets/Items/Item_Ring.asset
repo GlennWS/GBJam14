@@ -15,7 +15,6 @@ MonoBehaviour:
   displayName: Old Ring
   description: 
   shelfSprite: {fileID: 21300000, guid: 40879ca59b96a9d458113fd1a6114e34, type: 3}
-  closeUpSprite: {fileID: 21300000, guid: 9e6f91f64fadc59479d0686e6ad06d4e, type: 3}
   conditionFrames:
   - {fileID: 21300000, guid: 0d2cdc1b9bf434748a8f04f09ddddd51, type: 3}
   - {fileID: 21300000, guid: cff0f13931efa3e47978dbe98731682b, type: 3}
@@ -23,8 +22,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 9e6f91f64fadc59479d0686e6ad06d4e, type: 3}
   baseValue: 50
   askingRatio: 0.6
-  tells: 1
-  isFake: 0
   isKeepsake: 0
+  tells:
+  - kind: 0
+    pixel: {x: 0, y: 0}
   minStartCondition: 0.2
   maxStartCondition: 0.8

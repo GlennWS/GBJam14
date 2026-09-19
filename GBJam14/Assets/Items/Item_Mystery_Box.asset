@@ -15,7 +15,6 @@ MonoBehaviour:
   displayName: Mystery Box
   description: 
   shelfSprite: {fileID: 21300000, guid: e7d073f338516cd438093e1d8c085314, type: 3}
-  closeUpSprite: {fileID: 21300000, guid: cf76080397efa0e40bb0fbe671f4aa05, type: 3}
   conditionFrames:
   - {fileID: 21300000, guid: 6b5b1731480e6e840a85e223987f9f4a, type: 3}
   - {fileID: 21300000, guid: f1ceedc59dfef1546a88e821c4c326aa, type: 3}
@@ -23,8 +22,9 @@ MonoBehaviour:
   - {fileID: 21300000, guid: cf76080397efa0e40bb0fbe671f4aa05, type: 3}
   baseValue: 50
   askingRatio: 0.6
-  tells: 1
-  isFake: 0
   isKeepsake: 0
+  tells:
+  - kind: 0
+    pixel: {x: 0, y: 0}
   minStartCondition: 0.2
   maxStartCondition: 0.8

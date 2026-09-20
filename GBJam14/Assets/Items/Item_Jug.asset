@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Jug
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   displayName: Old Jug
-  description: 
+  description: An old jug.
   shelfSprite: {fileID: 21300000, guid: a21fc2d5f2dc3fb4bbbc31d2fd030115, type: 3}
   conditionFrames:
   - {fileID: 21300000, guid: 375c052638a13b0419b34ff8e6cbb4af, type: 3}
@@ -25,6 +25,10 @@ MonoBehaviour:
   isKeepsake: 0
   tells:
   - kind: 0
+    pixel: {x: 23, y: 35}
+  - kind: 2
+    pixel: {x: 0, y: 0}
+  - kind: 1
     pixel: {x: 0, y: 0}
   minStartCondition: 0.2
   maxStartCondition: 0.8

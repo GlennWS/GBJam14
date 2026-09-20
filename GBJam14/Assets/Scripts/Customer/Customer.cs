@@ -30,6 +30,7 @@ public class Customer : MonoBehaviour
     private bool walking;
     private float pauseTimer;
     private float waitTimer;
+    public bool WaitingPaused { get; set; }
     private Vector2 subPixel;
 
     public void SpawnSeller(ItemData data, Vector2 doorPos, Vector2 counterPos, IList<BrowsePoint> browsePoints)
@@ -161,6 +162,10 @@ public class Customer : MonoBehaviour
                 break;
 
             case Phase.Waiting:
+                if (WaitingPaused)
+                {
+                    break;
+                }
                 waitTimer -= Time.deltaTime;
                 if (waitTimer <= 0f)
                 {

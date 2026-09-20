@@ -42,7 +42,7 @@ public class CleaningMinigame : MonoBehaviour
         panel.SetActive(true);
         Refresh();
         caption.text = "Alternate A and B to scrub the item!";
-        IsRunning = true;
+        IsRunning = false;
     }
 
     private void Update()
@@ -145,6 +145,10 @@ public class CleaningMinigame : MonoBehaviour
         IsRunning = false;
         panel.SetActive(false);
         onComplete?.Invoke();
+    }
+    public void BeginPlay()
+    {
+        IsRunning = true;
     }
 
     // I only have this function to make the other lines look a bit neater :')

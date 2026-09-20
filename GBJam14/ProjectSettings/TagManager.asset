@@ -53,5 +53,8 @@ TagManager:
   - name: UI
     uniqueID: 1105213163
     locked: 0
+  - name: Transitions
+    uniqueID: 3317101389
+    locked: 0
   m_RenderingLayers:
   - Default

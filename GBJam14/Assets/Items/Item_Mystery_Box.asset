@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Mystery_Box
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   displayName: Mystery Box
-  description: 
+  description: A strange box.
   shelfSprite: {fileID: 21300000, guid: e7d073f338516cd438093e1d8c085314, type: 3}
   conditionFrames:
   - {fileID: 21300000, guid: 6b5b1731480e6e840a85e223987f9f4a, type: 3}
@@ -25,6 +25,6 @@ MonoBehaviour:
   isKeepsake: 0
   tells:
   - kind: 0
-    pixel: {x: 0, y: 0}
+    pixel: {x: 5, y: 5}
   minStartCondition: 0.2
   maxStartCondition: 0.8

@@ -49,7 +49,7 @@ public class AppraisalMinigame : MonoBehaviour
         lens.anchoredPosition = lensPos;
         panel.SetActive(true);
         caption.text = "Look closely...\n[A] Inspect  [B] Done";
-        IsRunning = true;
+        IsRunning = false;
     }
 
     private void Update()
@@ -170,5 +170,9 @@ public class AppraisalMinigame : MonoBehaviour
         IsRunning = false;
         panel.SetActive(false);
         onComplete?.Invoke();
+    }
+    public void BeginPlay()
+    {
+        IsRunning = true;
     }
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform counterPoint;
     [SerializeField] private GameObject messageStrip;
     [SerializeField] private TextMeshProUGUI messageText;
+    [SerializeField] private ScreenWipe wipe;
 
     [SerializeField] private List<ItemData> itemPool = new List<ItemData>();
     [SerializeField] private int customersPerDay = 3;
@@ -109,6 +110,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // why is this being weird
         bool canServe = customer.IsWaiting &&
                         Vector2.Distance(player.transform.position, counterPoint.position) <= serveRadius;
 
@@ -124,6 +126,7 @@ public class GameManager : MonoBehaviour
         }
         if (canServe && GBInput.A.WasPressedThisFrame())
         {
+            customer.WaitingPaused = true;
             showingPrompt = false;
             Enter(customer.CurrentKind == Customer.Kind.Buyer ? State.BuyerHaggle : State.Appraise);
         }
@@ -174,10 +177,9 @@ public class GameManager : MonoBehaviour
             case State.Appraise:
                 var it = customer.Item;
                 Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", () =>
-                {
-                    Hide();
-                    appraisal.Begin(it, () => Enter(State.Haggle));
-                });
+                    wipe.Play(
+                        () => { Hide(); appraisal.Begin(it, () => WipeTo(() => Enter(State.Haggle))); },
+                        () => appraisal.BeginPlay()));
                 break;
 
             case State.Haggle:
@@ -187,8 +189,9 @@ public class GameManager : MonoBehaviour
                 break;
 
             case State.Restore:
-                Hide();
-                cleaning.Begin(customer.Item, () => Enter(State.Stock));
+                wipe.Play(
+                    () => { Hide(); cleaning.Begin(customer.Item, () => WipeTo(() => Enter(State.Stock))); },
+                    () => cleaning.BeginPlay());
                 break;
 
             case State.Stock:
@@ -423,5 +426,10 @@ public class GameManager : MonoBehaviour
         }
         afterText = onDone;
         paging = true;
+    }
+
+    private void WipeTo(System.Action swap)
+    {
+        wipe.Play(swap);
     }
 }

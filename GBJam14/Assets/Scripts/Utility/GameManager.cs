@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    public enum State { Closed, Trading, Appraise, Haggle, Restore, Stock, BuyerHaggle, Summary, GameOver }
+    public enum State { Title, Closed, Trading, Appraise, Haggle, Restore, Stock, BuyerHaggle, Summary, GameOver }
 
     public static GameManager Instance { get; private set; }
 
@@ -45,6 +44,11 @@ public class GameManager : MonoBehaviour
     private bool showingPrompt;
     private float messageTimer;
 
+    [SerializeField] private GameObject titlePanel;
+    [SerializeField] private TextMeshProUGUI titlePrompt;
+    [SerializeField] private float titleBlink = 0.6f;
+    private float titleBlinkTimer;
+
     private void Awake()
     {
         Instance = this;
@@ -58,7 +62,7 @@ public class GameManager : MonoBehaviour
         customer.OnGaveUp += _ => Say("The customer got tired of waiting of you being SLOOOOW!!", 2f);
         browsePoints.AddRange(FindObjectsByType<BrowsePoint>(FindObjectsSortMode.None));
         shelves.AddRange(FindObjectsByType<Shelf>(FindObjectsSortMode.None));
-        Enter(State.Closed);
+        Enter(State.Title);
     }
 
     private void Update()
@@ -81,6 +85,19 @@ public class GameManager : MonoBehaviour
 
         switch (Current)
         {
+            case State.Title:
+                titleBlinkTimer += Time.deltaTime;
+                if (titleBlinkTimer >= titleBlink)
+                {
+                    titleBlinkTimer = 0f;
+                    if (titlePrompt != null) titlePrompt.enabled = !titlePrompt.enabled;
+                }
+                if (GBInput.Start.WasPressedThisFrame() || GBInput.A.WasPressedThisFrame())
+                {
+                    titlePanel.SetActive(false);
+                    wipe.Play(() => Enter(State.Closed));
+                }
+                break;
             case State.Trading:
                 UpdateTrading();
                 break;
@@ -166,6 +183,12 @@ public class GameManager : MonoBehaviour
 
         switch (s)
         {
+            case State.Title:
+                Money = startingMoney;
+                Day = 1;
+                titlePanel.SetActive(true);
+                break;
+
             case State.Closed:
                 Tell($"Day: {Day}. £{Money}\n~ Open the shop ~", Advance);
                 break;
@@ -250,7 +273,7 @@ public class GameManager : MonoBehaviour
 
             case State.GameOver:
                 Tell($"You can't pay the rent.\nThe shop is lost after {Day} days.\n~ Try again ~",
-                     () => SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex));
+                     () => wipe.Play(() => Enter(State.Title)));
                 break;
         }
     }

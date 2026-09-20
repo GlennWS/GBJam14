@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6daac0d17eaf52b4a94799d1a6ba0e57
+guid: 92c8a644940239546b564a1d0c204f77
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7176912977029818209
-    second: NewShopFloor_0
+      213: -1408437573596956881
+    second: TitleScreen_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: NewShopFloor_0
+      name: TitleScreen_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 320
-        height: 208
+        width: 160
+        height: 144
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 167e0c3e354899360800000000000000
-      internalID: 7176912977029818209
+      spriteID: f27b0713d79347ce0800000000000000
+      internalID: -1408437573596956881
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      NewShopFloor_0: 7176912977029818209
+      TitleScreen_0: -1408437573596956881
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -167,10 +167,18 @@ public class AppraisalMinigame : MonoBehaviour
 
     private void End()
     {
+        if (!IsRunning && !finishing)
+        {
+            return;
+        }
         IsRunning = false;
+        finishing = false;
         panel.SetActive(false);
-        onComplete?.Invoke();
+        var cb = onComplete;
+        onComplete = null;
+        cb?.Invoke();
     }
+
     public void BeginPlay()
     {
         IsRunning = true;

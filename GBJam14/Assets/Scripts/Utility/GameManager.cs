@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject messageStrip;
     [SerializeField] private TextMeshProUGUI messageText;
     [SerializeField] private ScreenWipe wipe;
+    [SerializeField] private GameObject minigameBackdrop;
 
     [SerializeField] private List<ItemData> itemPool = new List<ItemData>();
     [SerializeField] private int customersPerDay = 3;
@@ -62,7 +63,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (paging && GBInput.A.WasPressedThisFrame())
+        if (paging && !MinigameRunning() && GBInput.A.WasPressedThisFrame())
         {
             if (messageText.pageToDisplay < messageText.textInfo.pageCount)
             {
@@ -110,7 +111,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // why is this being weird
         bool canServe = customer.IsWaiting &&
                         Vector2.Distance(player.transform.position, counterPoint.position) <= serveRadius;
 
@@ -175,12 +175,21 @@ public class GameManager : MonoBehaviour
                 break;
 
             case State.Appraise:
-                var it = customer.Item;
-                Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", () =>
-                    wipe.Play(
-                        () => { Hide(); appraisal.Begin(it, () => WipeTo(() => Enter(State.Haggle))); },
-                        () => appraisal.BeginPlay()));
-                break;
+                {
+                    var it = customer.Item;
+                    Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", () =>
+                        wipe.Play(
+                            () =>
+                            {
+                                Hide();
+                                paging = false;
+                                afterText = null;
+                                minigameBackdrop.SetActive(true);
+                                appraisal.Begin(it, () => Enter(State.Haggle));
+                            },
+                            () => appraisal.BeginPlay()));
+                    break;
+                }
 
             case State.Haggle:
                 customer.Item.appraised = true;
@@ -189,9 +198,12 @@ public class GameManager : MonoBehaviour
                 break;
 
             case State.Restore:
-                wipe.Play(
-                    () => { Hide(); cleaning.Begin(customer.Item, () => WipeTo(() => Enter(State.Stock))); },
-                    () => cleaning.BeginPlay());
+                Hide();
+                paging = false;
+                afterText = null;
+                messageText.text = "";
+                cleaning.Begin(customer.Item, () => WipeToShop(() => Enter(State.Stock)));
+                cleaning.BeginPlay();
                 break;
 
             case State.Stock:
@@ -263,8 +275,11 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private bool MinigameRunning() => cleaning.IsRunning || appraisal.IsRunning;
+
     private void FinishServing()
     {
+        customer.WaitingPaused = false;
         customer.Leave();
         Enter(State.Trading);
     }
@@ -327,6 +342,8 @@ public class GameManager : MonoBehaviour
 
     private void ShowSellerHaggle()
     {
+        paging = false;
+        messageText.pageToDisplay = 1;
         Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.AppraisedValue}\nOffer £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
     }
 
@@ -386,6 +403,8 @@ public class GameManager : MonoBehaviour
 
     private void ShowBuyerHaggle()
     {
+        paging = false;
+        messageText.pageToDisplay = 1;
         Say($"They want {customer.Item.data.displayName}.\nAsk £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Sell  [B] Refuse ~");
     }
 
@@ -428,8 +447,12 @@ public class GameManager : MonoBehaviour
         paging = true;
     }
 
-    private void WipeTo(System.Action swap)
+    private void WipeToShop(System.Action swap)
     {
-        wipe.Play(swap);
+        wipe.Play(() =>
+        {
+            minigameBackdrop.SetActive(false);
+            swap();
+        });
     }
 }

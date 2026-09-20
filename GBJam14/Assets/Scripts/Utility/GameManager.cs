@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
                 if (GBInput.Start.WasPressedThisFrame() || GBInput.A.WasPressedThisFrame())
                 {
                     titlePanel.SetActive(false);
-                    wipe.Play(() => Enter(State.Closed));
+                    Enter(State.Closed);
                 }
                 break;
             case State.Trading:

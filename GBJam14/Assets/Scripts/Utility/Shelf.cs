@@ -24,6 +24,7 @@ public class Shelf : MonoBehaviour
             var go = new GameObject("Icon");
             go.transform.SetParent(slotPoints[i], false);
             var sr = go.AddComponent<SpriteRenderer>();
+            sr.material = GetComponent<SpriteRenderer>().material;
             sr.sortingLayerName = iconSortingLayer;
             sr.sortingOrder = iconSortingOrder;
             sr.enabled = false;

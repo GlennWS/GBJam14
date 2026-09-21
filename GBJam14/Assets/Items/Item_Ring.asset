@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Item_Ring
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   displayName: Old Ring
-  description: An interesting ring.
+  description: I just got divorced, this is my wedding ring.
   shelfSprite: {fileID: 21300000, guid: 40879ca59b96a9d458113fd1a6114e34, type: 3}
   conditionFrames:
   - {fileID: 21300000, guid: 0d2cdc1b9bf434748a8f04f09ddddd51, type: 3}

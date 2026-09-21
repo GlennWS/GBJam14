@@ -133,6 +133,8 @@ public class GameManager : MonoBehaviour
 
         if (canServe && !showingPrompt)
         {
+            paging = false;
+            messageText.pageToDisplay = 1;
             Say("~ [A] Serve Customer ~");
             showingPrompt = true;
         }
@@ -200,7 +202,7 @@ public class GameManager : MonoBehaviour
             case State.Appraise:
                 {
                     var it = customer.Item;
-                    Tell($"\"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", () =>
+                    Tell($"The customer brings in an item: \"{it.data.description}\"\nThe customer wants £{it.AskingPrice}.", () =>
                         wipe.Play(
                             () =>
                             {
@@ -302,6 +304,7 @@ public class GameManager : MonoBehaviour
 
     private void FinishServing()
     {
+        minigameBackdrop.SetActive(false);
         customer.WaitingPaused = false;
         customer.Leave();
         Enter(State.Trading);
@@ -367,7 +370,7 @@ public class GameManager : MonoBehaviour
     {
         paging = false;
         messageText.pageToDisplay = 1;
-        Say($"{customer.Item.data.displayName}  worth ~£{customer.Item.AppraisedValue}\nOffer £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
+        Say($"{customer.Item.data.displayName} worth ~£{customer.Item.AppraisedValue}\nOffer £{offer}  {MoodFace()}\n~ [Up/Down] Adjust  [A] Deal!  [B] Decline ~");
     }
 
     private void HandleBuyerHaggle()

@@ -12,12 +12,18 @@ public class PlayerController : MonoBehaviour
     public bool InputEnabled { get; set; } = true;
 
     private Rigidbody2D rb;
+    private Animator anim;
     private SpriteRenderer sr;
     private Vector2 moveDir;
+
+    private static int MoveX = Animator.StringToHash("MoveX");
+    private static int MoveY = Animator.StringToHash("MoveY");
+    private static int Moving = Animator.StringToHash("Moving");
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
@@ -29,7 +35,14 @@ public class PlayerController : MonoBehaviour
 
         if (input.x != 0f && input.y != 0f)
         {
-            if (moveDir.x != 0f) input.y = 0f; else input.x = 0f;
+            if (moveDir.x != 0f)
+            {
+                input.y = 0f;
+            }
+            else
+            {
+                input.x = 0f;
+            }
         }
 
         moveDir = input;
@@ -37,13 +50,37 @@ public class PlayerController : MonoBehaviour
 
         if (IsMoving)
         {
-            if (moveDir.y < 0f) CurrentFacing = Facing.Down;
-            else if (moveDir.y > 0f) CurrentFacing = Facing.Up;
-            else if (moveDir.x < 0f) CurrentFacing = Facing.Left;
-            else CurrentFacing = Facing.Right;
+            if (moveDir.y < 0f)
+            {
+                CurrentFacing = Facing.Down;
+            }
+            else if (moveDir.y > 0f)
+            {
+                CurrentFacing = Facing.Up;
+            }
+            else if (moveDir.x < 0f)
+            {
+                CurrentFacing = Facing.Left;
+            }
+            else
+            {
+                CurrentFacing = Facing.Right;
+            }
         }
-
-        if (sr != null) sr.flipX = CurrentFacing == Facing.Right;
+        if (anim != null)
+        {
+            Vector2 face = CurrentFacing switch
+            {
+                Facing.Down => Vector2.down,
+                Facing.Up => Vector2.up,
+                Facing.Left => Vector2.left,
+                Facing.Right => Vector2.right,
+                _ => Vector2.down
+            };
+            anim.SetFloat(MoveX, face.x);
+            anim.SetFloat(MoveY, face.y);
+            anim.SetBool(Moving, IsMoving);
+        }
     }
 
     private void FixedUpdate()

@@ -25,7 +25,7 @@ MonoBehaviour:
   isKeepsake: 0
   tells:
   - kind: 0
-    pixel: {x: 23, y: 35}
+    pixel: {x: 14, y: 42}
   - kind: 2
     pixel: {x: 0, y: 0}
   - kind: 1

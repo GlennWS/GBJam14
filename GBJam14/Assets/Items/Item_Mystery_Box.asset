@@ -25,6 +25,6 @@ MonoBehaviour:
   isKeepsake: 0
   tells:
   - kind: 0
-    pixel: {x: 5, y: 5}
+    pixel: {x: 33, y: 18}
   minStartCondition: 0.2
   maxStartCondition: 0.8

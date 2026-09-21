@@ -26,9 +26,5 @@ MonoBehaviour:
   tells:
   - kind: 0
     pixel: {x: 14, y: 42}
-  - kind: 2
-    pixel: {x: 0, y: 0}
-  - kind: 1
-    pixel: {x: 0, y: 0}
   minStartCondition: 0.2
   maxStartCondition: 0.8

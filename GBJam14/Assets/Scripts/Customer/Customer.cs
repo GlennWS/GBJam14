@@ -32,6 +32,16 @@ public class Customer : MonoBehaviour
     private float waitTimer;
     public bool WaitingPaused { get; set; }
     private Vector2 subPixel;
+    private Animator anim;
+    private Vector2 facing = Vector2.down;
+    private static int MoveX = Animator.StringToHash("MoveX");
+    private static int MoveY = Animator.StringToHash("MoveY");
+    private static int Moving = Animator.StringToHash("Moving");
+
+    private void Awake()
+    {
+        anim = GetComponent<Animator>();
+    }
 
     public void SpawnSeller(ItemData data, Vector2 doorPos, Vector2 counterPos, IList<BrowsePoint> browsePoints)
     {
@@ -175,6 +185,13 @@ public class Customer : MonoBehaviour
                 }
                 break;
         }
+
+        if (anim != null)
+        {
+            anim.SetFloat(MoveX, facing.x);
+            anim.SetFloat(MoveY, facing.y);
+            anim.SetBool(Moving, walking);
+        }
     }
 
     private void Arrived()
@@ -211,6 +228,23 @@ public class Customer : MonoBehaviour
             transform.position = target;
             Arrived();
             return;
+        }
+
+        if (dir.x < 0f)
+        {
+            facing = Vector2.left;
+        }
+        else if (dir.x > 0f)
+        {
+            facing = Vector2.right;
+        }
+        else if (dir.y < 0f)
+        {
+            facing = Vector2.down;
+        }
+        else if (dir.y > 0f)
+        {
+            facing = Vector2.up;
         }
 
         subPixel += dir * speedPixelsPerSecond * Time.deltaTime;
